@@ -1,7 +1,9 @@
 import cv2
 import glob
 
-#Формирование списка с
+#Формирование списка с кадрами
+pathname = 'C:/Users/mdrn/Documents/GitHub/MDRN-Tracer/dataset/snap*.jpg'
+glob.glob(pathname)
 
 path = 'voskres.mp4'
 # Инициализация трекера и видеопотока
