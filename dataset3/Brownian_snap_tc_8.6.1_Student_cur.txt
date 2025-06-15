@@ -1,0 +1,10 @@
+####
+#Date: 5 фев 2025 г. 16:14:05
+#OSName: Windows NT
+#OSVers: 5.1
+#AppName: Brownian_snap_tc
+#Version: 8.6.1
+#AppKind: AppLib
+#AppModDate: 01/30/2018 10:39 GMT
+
+

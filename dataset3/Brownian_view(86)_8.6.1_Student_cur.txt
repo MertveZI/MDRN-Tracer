@@ -1,0 +1,10 @@
+####
+#Date: 5 фев 2025 г. 16:13:34
+#OSName: Windows NT
+#OSVers: 5.1
+#AppName: Brownian_view(86)
+#Version: 8.6.1
+#AppKind: AppLib
+#AppModDate: 01/28/2018 14:47 GMT
+
+
