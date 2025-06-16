@@ -10,6 +10,13 @@ class MainWindow(QWidget):
 
         self.VBL = QVBoxLayout()
 
+        self.FeedLabel = QLabel()
+        self.VBL.addWidget(self.FeedLabel)
+
+        self.OpenFileBTN = QPushButton("open")
+        self.VBL.addWidget(self.OpenFileBTN)
+
+
         self.setLayout(self.VBL)
 
 
@@ -33,26 +40,26 @@ class MainWindow(QWidget):
 
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
+    app = QApplication(sys.argv)
 
     # Установка темной темы
-    app.setStyle("Fusion")  # Используем стиль Fusion
-    dark_palette = QtGui.QPalette()
+    app.setStyle("Fusion")  
+    dark_palette = QPalette()
 
     # Настройка палитры для темной темы
     dark_colors = {
-        QtGui.QPalette.Window: QtGui.QColor(53, 53, 53),
-        QtGui.QPalette.WindowText: QtGui.QColor(255, 255, 255),
-        QtGui.QPalette.Base: QtGui.QColor(35, 35, 35),
-        QtGui.QPalette.AlternateBase: QtGui.QColor(53, 53, 53),
-        QtGui.QPalette.ToolTipBase: QtGui.QColor(255, 255, 255),
-        QtGui.QPalette.ToolTipText: QtGui.QColor(255, 255, 255),
-        QtGui.QPalette.Text: QtGui.QColor(255, 255, 255),
-        QtGui.QPalette.Button: QtGui.QColor(53, 53, 53),
-        QtGui.QPalette.ButtonText: QtGui.QColor(255, 255, 255),
-        QtGui.QPalette.BrightText: QtGui.QColor(255, 0, 0),
-        QtGui.QPalette.Highlight: QtGui.QColor(42, 130, 218),
-        QtGui.QPalette.HighlightedText: QtGui.QColor(0, 0, 0),
+        QPalette.Window: QColor(53, 53, 53),
+        QPalette.WindowText: QColor(255, 255, 255),
+        QPalette.Base: QColor(35, 35, 35),
+        QPalette.AlternateBase: QColor(53, 53, 53),
+        QPalette.ToolTipBase: QColor(255, 255, 255),
+        QPalette.ToolTipText: QColor(255, 255, 255),
+        QPalette.Text: QColor(255, 255, 255),
+        QPalette.Button: QColor(53, 53, 53),
+        QPalette.ButtonText: QColor(255, 255, 255),
+        QPalette.BrightText: QColor(255, 0, 0),
+        QPalette.Highlight: QColor(42, 130, 218),
+        QPalette.HighlightedText: QColor(0, 0, 0),
     }
 
     for role, color in dark_colors.items():
@@ -60,6 +67,6 @@ if __name__ == "__main__":
 
     app.setPalette(dark_palette)
 
-    window = GraphApp()
+    window = MainWindow()
     window.show()
     sys.exit(app.exec())
