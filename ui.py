@@ -1,55 +1,94 @@
-from PySide6.QtGui import QImage, QPixmap
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton
-from PySide6.QtCore import QThread, Signal
-import cv2
-
-class ImageWindow(QThread):
-    ImageUpdate = Signal(QImage)
-    
-    def run(self):
-        self.ThreadActive = True
-        Capture = cv2.VideoCapture(0)
-        while self.ThreadActive:
-            ret, frame = Capture.read()
-            if ret:
-                Image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                FlippedImage = cv2.flip(Image, 1)
-                Pic = QImage(
-                    FlippedImage.data, 
-                    FlippedImage.shape[1], 
-                    FlippedImage.shape[0], 
-                    QImage.Format_RGB888
-                )
-                self.ImageUpdate.emit(Pic)
-    
-    def stop(self):
-        self.ThreadActive = False
-        self.quit()
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QLabel, QPushButton, 
+    QFileDialog, QHBoxLayout
+)
+from PySide6.QtCore import Qt
+from tracer import TracerThread
 
 class MainWindow(QWidget):
     def __init__(self):
         super(MainWindow, self).__init__()
+        self.setWindowTitle("Particle Tracer")
+        self.resize(800, 600)
         
+        # Основной layout
         self.VBL = QVBoxLayout()
         
+        # Label для отображения изображений
         self.FeedLabel = QLabel()
+        self.FeedLabel.setAlignment(Qt.AlignCenter)
         self.VBL.addWidget(self.FeedLabel)
         
-        self.CancelBTN = QPushButton("Cancel")
-        self.CancelBTN.clicked.connect(self.CancelFeed)
-        self.VBL.addWidget(self.CancelBTN)
+        # Кнопки управления
+        self.ControlLayout = QHBoxLayout()
         
-        self.OpenFileBTN = QPushButton("open")
-        self.VBL.addWidget(self.OpenFileBTN)
+        self.OpenFolderBTN = QPushButton("Open Folder")
+        self.OpenFolderBTN.clicked.connect(self.OpenFolder)
+        self.ControlLayout.addWidget(self.OpenFolderBTN)
         
-        self.ImageWindow = ImageWindow()
-        self.ImageWindow.start()
-        self.ImageWindow.ImageUpdate.connect(self.ImageUpdateSlot)
+        self.StartBTN = QPushButton("Start Tracking")
+        self.StartBTN.clicked.connect(self.StartTracking)
+        self.StartBTN.setEnabled(False)
+        self.ControlLayout.addWidget(self.StartBTN)
+        
+        self.CancelBTN = QPushButton("Stop")
+        self.CancelBTN.clicked.connect(self.StopTracking)
+        self.CancelBTN.setEnabled(False)
+        self.ControlLayout.addWidget(self.CancelBTN)
+        
+        self.VBL.addLayout(self.ControlLayout)
+        
+        # Статус бар
+        self.StatusLabel = QLabel("Select folder with images to start")
+        self.VBL.addWidget(self.StatusLabel)
+        
+        # Инициализация трекера
+        self.Tracker = TracerThread()
+        self.Tracker.ImageUpdate.connect(self.UpdateImage)
+        self.Tracker.PositionUpdate.connect(self.UpdatePosition)
         
         self.setLayout(self.VBL)
-    
-    def ImageUpdateSlot(self, Image):
-        self.FeedLabel.setPixmap(QPixmap.fromImage(Image))
-    
-    def CancelFeed(self):
-        self.ImageWindow.stop()
+
+    def OpenFolder(self):
+        """Выбор папки с изображениями"""
+        folder = QFileDialog.getExistingDirectory(self, "Select Image Folder")
+        if folder:
+            success = self.Tracker.setup(folder)
+            if success:
+                self.StatusLabel.setText(f"Loaded {len(self.Tracker.snaps)} images. Select particle and press Start")
+                self.StartBTN.setEnabled(True)
+            else:
+                self.StatusLabel.setText("No images found or selection canceled")
+
+    def StartTracking(self):
+        """Запуск трекинга"""
+        self.Tracker.active = True
+        self.Tracker.start()
+        self.StartBTN.setEnabled(False)
+        self.CancelBTN.setEnabled(True)
+        self.StatusLabel.setText("Tracking started...")
+
+    def StopTracking(self):
+        """Остановка трекинга"""
+        self.Tracker.stop()
+        self.StartBTN.setEnabled(True)
+        self.CancelBTN.setEnabled(False)
+        self.StatusLabel.setText("Tracking stopped")
+
+    def UpdateImage(self, Image):
+        """Обновление изображения в интерфейсе"""
+        pixmap = QPixmap.fromImage(Image)
+        self.FeedLabel.setPixmap(pixmap.scaled(
+            self.FeedLabel.width(), 
+            self.FeedLabel.height(),
+            Qt.KeepAspectRatio, 
+            Qt.SmoothTransformation
+        ))
+
+    def UpdatePosition(self, position):
+        """Обновление позиции частицы"""
+        if position == (-1, -1):
+            self.StatusLabel.setText("Tracking lost!")
+        else:
+            self.StatusLabel.setText(f"Position: X={position[0]}, Y={position[1]}")
