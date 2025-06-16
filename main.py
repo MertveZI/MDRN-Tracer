@@ -1,17 +1,20 @@
 import sys
-import threading
-from PySide6 import QtWidgets, QtGui, QtCore
-from views import AppUI
-from PySide6.QtGui import QAction
+from PySide6.QtGui import *
+from PySide6.QtWidgets import *
+from PySide6.QtCore import *
+import cv2
 
-
-class GraphApp(AppUI):
+class MainWindow(QWidget):
     def __init__(self):
-        super().__init__()
+        super(MainWindow, self).__init__()
+
+        self.VBL = QVBoxLayout()
+
+        self.setLayout(self.VBL)
 
 
-    def image_open(self, path):
-        """Открывает изображение"""
+    def file_open(self, path):
+        """Открывает изображение или видео"""
         pass
 
     def image_analyze(self, image):
@@ -26,14 +29,6 @@ class GraphApp(AppUI):
         """Обновление графиков с новыми данными."""
         pass
 
-    def stop_image_parsing(self):
-        """Останавливает парсинг изображений"""
-        pass
-
-    def start_image_parsing(self,count):
-        """Начинает парсинг изображений"""
-        for i in range(count):
-            pass
         
 
 

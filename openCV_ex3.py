@@ -8,12 +8,12 @@ def find_position(frame, tracker):
     if success:
         x, y, w, h = [int(v) for v in roi]
         position = (x+(w//2), y+(h//2))
-        radius =  ((w + h) // 8)
+        radius =  ((w + h) // 7)
         cv2.circle(frame, position, radius, (0, 0, 255), 2)
     return position
 
 #Формирование списка с кадрами
-pathname = 'C:/Users/mdrn/Documents/GitHub/MDRN-Tracer/dataset2/*.jpg'
+pathname = 'C:/Users/mdrn/Documents/GitHub/MDRN-Tracer/dataset3/vlad*.jpg'
 snaps = glob.glob(pathname)
 frame = cv2.imread(snaps[0],1)
 
@@ -31,8 +31,8 @@ if roi != (0, 0, 0, 0):
     while True:
         i += 1
         frame = cv2.imread(snaps[i],1)
-        p1,p2 = find_position(frame,tracker)
-        print(f"p1: {p1}, p2: {p2}")
+        x_pos, y_pos = find_position(frame,tracker)
+        print(f"x: {x_pos}, y: {y_pos}")
         
         cv2.imshow("Tracking..", frame)
         
