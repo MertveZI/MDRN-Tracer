@@ -3,10 +3,42 @@ from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QLabel, 
     QFileDialog, QHBoxLayout, QPushButton, QStatusBar
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QThread, Signal
 from tracer import TracerThread
+from collections import deque
+import time
 
-class MainWindow(QMainWindow):  # Изменено на QMainWindow
+class FileWriterThread(QThread):
+    """Поток для записи координат в файл"""
+    finished = Signal()
+    
+    def __init__(self, buffer, filename):
+        super().__init__()
+        self.buffer = buffer
+        self.filename = filename
+        self.running = True
+        
+    def run(self):
+        """Основной цикл записи"""
+        try:
+            with open(self.filename, 'a') as f:
+                f.write("X,Y\n")  # Заголовок CSV
+                while self.running or self.buffer:
+                    if self.buffer:
+                        x, y = self.buffer.popleft()
+                        f.write(f"{x},{y}\n")
+                        f.flush()  # Сброс буфера после каждой записи
+                    self.msleep(5)  
+        except Exception as e:
+            print(f"Error writing to file: {e}")
+        finally:
+            self.finished.emit()
+            
+    def stop(self):
+        """Остановка потока записи"""
+        self.running = False
+
+class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setWindowTitle("MDRN_Tracer")
@@ -53,6 +85,11 @@ class MainWindow(QMainWindow):  # Изменено на QMainWindow
         self.Tracker = TracerThread()
         self.Tracker.ImageUpdate.connect(self.UpdateImage)
         self.Tracker.PositionUpdate.connect(self.UpdatePosition)
+        
+        # Буфер для координат
+        self.coord_buffer = deque()
+        self.frame_counter = 0
+        self.writer_thread = None
 
     def OpenFolder(self):
         """Выбор папки с изображениями"""
@@ -62,23 +99,48 @@ class MainWindow(QMainWindow):  # Изменено на QMainWindow
             if success:
                 self.statusBar.showMessage(f"Loaded {len(self.Tracker.snaps)} images. Select particle and press Start")
                 self.StartBTN.setEnabled(True)
+                
+                # Сбрасываем счетчик кадров
+                self.frame_counter = 0
             else:
                 self.statusBar.showMessage("No images found or selection canceled")
 
     def StartTracking(self):
         """Запуск трекинга"""
+        # Создаем уникальное имя файла с временной меткой
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        self.output_file = f"tracking_data_{timestamp}.csv"
+        
+        # Очищаем буфер
+        self.coord_buffer.clear()
+        self.frame_counter = 0
+        
+        # Запускаем поток записи
+        self.writer_thread = FileWriterThread(self.coord_buffer, self.output_file)
+        self.writer_thread.start()
+        
+        # Запускаем трекинг
         self.Tracker.active = True
         self.Tracker.start()
         self.StartBTN.setEnabled(False)
         self.CancelBTN.setEnabled(True)
-        self.statusBar.showMessage("Tracking started...")
+        self.statusBar.showMessage(f"Tracking started. Saving to: {self.output_file}")
 
     def StopTracking(self):
         """Остановка трекинга"""
+        # Останавливаем трекинг
         self.Tracker.stop()
+        
+        # Останавливаем поток записи
+        if self.writer_thread:
+            self.writer_thread.stop()
+            self.writer_thread.quit()
+            self.writer_thread.wait()
+            self.writer_thread = None
+        
         self.StartBTN.setEnabled(True)
         self.CancelBTN.setEnabled(False)
-        self.statusBar.showMessage("Tracking stopped")
+        self.statusBar.showMessage(f"Tracking stopped. Data saved to: {self.output_file}")
 
     def UpdateImage(self, Image):
         """Обновление изображения в интерфейсе"""
@@ -96,3 +158,7 @@ class MainWindow(QMainWindow):  # Изменено на QMainWindow
             self.statusBar.showMessage("Tracking lost!")
         else:
             self.statusBar.showMessage(f"Position: X={position[0]}, Y={position[1]}")
+            
+            # Добавляем координаты в буфер
+            self.frame_counter += 1
+            self.coord_buffer.append((position[0], position[1]))

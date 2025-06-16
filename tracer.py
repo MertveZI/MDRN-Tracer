@@ -72,7 +72,7 @@ class TracerThread(QThread):
             qt_image = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
             
             self.ImageUpdate.emit(qt_image)
-            self.msleep(30)  # Задержка для плавного отображения
+            self.msleep(5)  # Задержка для плавного отображения
 
     def stop(self):
         """Остановка трекинга"""
