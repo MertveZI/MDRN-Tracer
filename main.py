@@ -13,32 +13,24 @@ class MainWindow(QWidget):
         self.FeedLabel = QLabel()
         self.VBL.addWidget(self.FeedLabel)
 
+        self.CancelBTN = QPushButton("Cancel")
+        self.CancelBTN.clicked.connect(self.CancelFeed)
+        self.VBL.addWidget(self.CancelBTN)
+
         self.OpenFileBTN = QPushButton("open")
         self.VBL.addWidget(self.OpenFileBTN)
 
         self.ImageWindow = ImageWindow()
-        
-        self.ImageWindow.start
 
-
+        self.ImageWindow.start()
+        self.ImageWindow.ImageUpdate.connect(self.ImageUpdateSlot)
         self.setLayout(self.VBL)
 
+    def ImageUpdateSlot(self, Image):
+        self.FeedLabel.setPixmap(QPixmap.fromImage(Image))
 
-    def file_open(self, path):
-        """Открывает изображение или видео"""
-        pass
-
-    def image_analyze(self, image):
-        """Открывает изображение"""
-        pass
-
-    def update_status(self, text, color):
-        """Обновляет статус работы"""
-        pass
-
-    def update_image(self, image):
-        """Обновление графиков с новыми данными."""
-        pass
+    def CancelFeed(self):
+        self.ImageWindow.stop()
 
 class ImageWindow(QThread):
     ImageUpdate = Signal(QImage)
@@ -48,8 +40,8 @@ class ImageWindow(QThread):
         while self.ThreadActive:
             ret, frame = Capture.read()
             if ret:
-                Image = cv2.cvtColor(frame, cv2.color_BGR2RGB)
-                FlippedImage = cv2.flip(Image,1)
+                Image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                FlippedImage = cv2.flip(Image, 1)
                 Pic = QImage(FlippedImage.data, FlippedImage.shape[1], FlippedImage.shape[0], QImage.Format_RGB888)
                 self.ImageUpdate.emit(Pic)
     def stop(self):
@@ -57,33 +49,9 @@ class ImageWindow(QThread):
         self.quit()
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-
+    App = QApplication(sys.argv)
     # Установка темной темы
-    app.setStyle("Fusion")  
-    dark_palette = QPalette()
-
-    # Настройка палитры для темной темы
-    dark_colors = {
-        QPalette.Window: QColor(53, 53, 53),
-        QPalette.WindowText: QColor(255, 255, 255),
-        QPalette.Base: QColor(35, 35, 35),
-        QPalette.AlternateBase: QColor(53, 53, 53),
-        QPalette.ToolTipBase: QColor(255, 255, 255),
-        QPalette.ToolTipText: QColor(255, 255, 255),
-        QPalette.Text: QColor(255, 255, 255),
-        QPalette.Button: QColor(53, 53, 53),
-        QPalette.ButtonText: QColor(255, 255, 255),
-        QPalette.BrightText: QColor(255, 0, 0),
-        QPalette.Highlight: QColor(42, 130, 218),
-        QPalette.HighlightedText: QColor(0, 0, 0),
-    }
-
-    for role, color in dark_colors.items():
-        dark_palette.setColor(role, color)
-
-    app.setPalette(dark_palette)
-
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec())
+    App.setStyle("Fusion")  
+    Root = MainWindow()
+    Root.show()
+    sys.exit(App.exec())
