@@ -1,4 +1,4 @@
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QIcon
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QPushButton, 
     QFileDialog, QHBoxLayout
@@ -9,8 +9,9 @@ from tracer import TracerThread
 class MainWindow(QWidget):
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.setWindowTitle("Particle Tracer")
-        self.resize(800, 600)
+        self.setWindowTitle("MDRN_Tracer")
+        self.setWindowIcon(QIcon('logo.png'))
+        self.setGeometry(100, 100, 600, 400)
         
         # Основной layout
         self.VBL = QVBoxLayout()
