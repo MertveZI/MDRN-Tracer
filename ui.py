@@ -48,8 +48,6 @@ class MainWindow(QMainWindow):
         # Создаем центральный виджет
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        
-        # Основной layout для центрального виджета
         self.VBL = QVBoxLayout(central_widget)
         
         # Label для отображения изображений
@@ -88,7 +86,6 @@ class MainWindow(QMainWindow):
         
         # Буфер для координат
         self.coord_buffer = deque()
-        self.frame_counter = 0
         self.writer_thread = None
 
     def OpenFolder(self):
@@ -99,9 +96,6 @@ class MainWindow(QMainWindow):
             if success:
                 self.statusBar.showMessage(f"Loaded {len(self.Tracker.snaps)} images. Select particle and press Start")
                 self.StartBTN.setEnabled(True)
-                
-                # Сбрасываем счетчик кадров
-                self.frame_counter = 0
             else:
                 self.statusBar.showMessage("No images found or selection canceled")
 
@@ -113,7 +107,6 @@ class MainWindow(QMainWindow):
         
         # Очищаем буфер
         self.coord_buffer.clear()
-        self.frame_counter = 0
         
         # Запускаем поток записи
         self.writer_thread = FileWriterThread(self.coord_buffer, self.output_file)
@@ -160,5 +153,4 @@ class MainWindow(QMainWindow):
             self.statusBar.showMessage(f"Position: X={position[0]}, Y={position[1]}")
             
             # Добавляем координаты в буфер
-            self.frame_counter += 1
             self.coord_buffer.append((position[0], position[1]))
