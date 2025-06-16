@@ -29,7 +29,8 @@ class TracerThread(QThread):
         # Показ ROI выбора
         roi = cv2.selectROI("Particle selection", first_frame, False)
         cv2.destroyWindow("Particle selection")
-        
+        # Обработка ROI
+
         if roi != (0, 0, 0, 0):
             self.roi = roi
             self.tracker.init(first_frame, roi)
@@ -71,7 +72,6 @@ class TracerThread(QThread):
             qt_image = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
             
             self.ImageUpdate.emit(qt_image)
-            self.msleep(5)  # Задержка для плавного отображения
 
     def stop(self):
         """Остановка трекинга"""

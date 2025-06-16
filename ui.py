@@ -28,7 +28,6 @@ class FileWriterThread(QThread):
                         x, y = self.buffer.popleft()
                         f.write(f"{x},{y}\n")
                         f.flush()  # Сброс буфера после каждой записи
-                    self.msleep(5)  
         except Exception as e:
             print(f"Error writing to file: {e}")
         finally:
@@ -43,7 +42,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         self.setWindowTitle("MDRN_Tracer")
         self.setWindowIcon(QIcon('logo.png'))
-        self.setGeometry(100, 100, 600, 400)
+        self.setGeometry(100, 100, 700, 600)
         
         # Создаем центральный виджет
         central_widget = QWidget()
@@ -121,7 +120,6 @@ class MainWindow(QMainWindow):
 
     def StopTracking(self):
         """Остановка трекинга"""
-        # Останавливаем трекинг
         self.Tracker.stop()
         
         # Останавливаем поток записи
