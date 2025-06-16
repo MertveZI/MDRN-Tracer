@@ -1,20 +1,24 @@
 from PySide6.QtGui import QPixmap, QIcon
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton, 
-    QFileDialog, QHBoxLayout
+    QMainWindow, QWidget, QVBoxLayout, QLabel, 
+    QFileDialog, QHBoxLayout, QPushButton, QStatusBar
 )
 from PySide6.QtCore import Qt
 from tracer import TracerThread
 
-class MainWindow(QWidget):
+class MainWindow(QMainWindow):  # Изменено на QMainWindow
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setWindowTitle("MDRN_Tracer")
         self.setWindowIcon(QIcon('logo.png'))
         self.setGeometry(100, 100, 600, 400)
         
-        # Основной layout
-        self.VBL = QVBoxLayout()
+        # Создаем центральный виджет
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        
+        # Основной layout для центрального виджета
+        self.VBL = QVBoxLayout(central_widget)
         
         # Label для отображения изображений
         self.FeedLabel = QLabel()
@@ -40,16 +44,15 @@ class MainWindow(QWidget):
         
         self.VBL.addLayout(self.ControlLayout)
         
-        # Статус бар
-        self.StatusLabel = QLabel("Select folder with images to start")
-        self.VBL.addWidget(self.StatusLabel)
+        # Создаем статус бар
+        self.statusBar = QStatusBar()
+        self.setStatusBar(self.statusBar)
+        self.statusBar.showMessage("Select folder with images to start")
         
         # Инициализация трекера
         self.Tracker = TracerThread()
         self.Tracker.ImageUpdate.connect(self.UpdateImage)
         self.Tracker.PositionUpdate.connect(self.UpdatePosition)
-        
-        self.setLayout(self.VBL)
 
     def OpenFolder(self):
         """Выбор папки с изображениями"""
@@ -57,10 +60,10 @@ class MainWindow(QWidget):
         if folder:
             success = self.Tracker.setup(folder)
             if success:
-                self.StatusLabel.setText(f"Loaded {len(self.Tracker.snaps)} images. Select particle and press Start")
+                self.statusBar.showMessage(f"Loaded {len(self.Tracker.snaps)} images. Select particle and press Start")
                 self.StartBTN.setEnabled(True)
             else:
-                self.StatusLabel.setText("No images found or selection canceled")
+                self.statusBar.showMessage("No images found or selection canceled")
 
     def StartTracking(self):
         """Запуск трекинга"""
@@ -68,14 +71,14 @@ class MainWindow(QWidget):
         self.Tracker.start()
         self.StartBTN.setEnabled(False)
         self.CancelBTN.setEnabled(True)
-        self.StatusLabel.setText("Tracking started...")
+        self.statusBar.showMessage("Tracking started...")
 
     def StopTracking(self):
         """Остановка трекинга"""
         self.Tracker.stop()
         self.StartBTN.setEnabled(True)
         self.CancelBTN.setEnabled(False)
-        self.StatusLabel.setText("Tracking stopped")
+        self.statusBar.showMessage("Tracking stopped")
 
     def UpdateImage(self, Image):
         """Обновление изображения в интерфейсе"""
@@ -90,6 +93,6 @@ class MainWindow(QWidget):
     def UpdatePosition(self, position):
         """Обновление позиции частицы"""
         if position == (-1, -1):
-            self.StatusLabel.setText("Tracking lost!")
+            self.statusBar.showMessage("Tracking lost!")
         else:
-            self.StatusLabel.setText(f"Position: X={position[0]}, Y={position[1]}")
+            self.statusBar.showMessage(f"Position: X={position[0]}, Y={position[1]}")
