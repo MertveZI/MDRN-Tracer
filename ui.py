@@ -28,6 +28,9 @@ class FileWriterThread(QThread):
                         x, y = self.buffer.popleft()
                         f.write(f"{x},{y}\n")
                         f.flush()  # Сброс буфера после каждой записи
+                    else:
+                        # Короткая пауза при пустом буфере
+                        time.sleep(0.1)
         except Exception as e:
             print(f"Error writing to file: {e}")
         finally:
@@ -86,6 +89,7 @@ class MainWindow(QMainWindow):
         # Буфер для координат
         self.coord_buffer = deque()
         self.writer_thread = None
+        self.output_file = None
 
     def OpenFolder(self):
         """Выбор папки с изображениями"""
@@ -126,7 +130,7 @@ class MainWindow(QMainWindow):
         if self.writer_thread:
             self.writer_thread.stop()
             self.writer_thread.quit()
-            self.writer_thread.wait()
+            self.writer_thread.wait(1000)
             self.writer_thread = None
         
         self.StartBTN.setEnabled(True)
@@ -152,3 +156,21 @@ class MainWindow(QMainWindow):
             
             # Добавляем координаты в буфер
             self.coord_buffer.append((position[0], position[1]))
+    
+    def closeEvent(self, event):
+        """Обработчик события закрытия окна"""
+        # Останавливаем трекинг
+        if self.Tracker.isRunning():
+            self.Tracker.stop()
+            self.Tracker.quit()
+            self.Tracker.wait(1000)  # Ждем до 1 секунды
+        
+        # Останавливаем поток записи
+        if self.writer_thread:
+            self.writer_thread.stop()
+            if self.writer_thread.isRunning():
+                self.writer_thread.quit()
+                self.writer_thread.wait(1000)
+        
+        # Принимаем событие закрытия
+        event.accept()
